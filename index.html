@@ -60,7 +60,10 @@ function loadImg(name) { const i = new Image(); i.src = 'assets/' + name + '.png
 ['title',
  'mon_slime','mon_dracky','mon_rabbit','mon_mimic','mon_armor','mon_golem','mon_chimera','mon_metal',
  'mon_hoimi','mon_dragon','mon_demonknight','mon_deathknight','boss_orochi','boss_baramos','boss_zoma',
- 'job_hero','job_warrior','job_fighter','job_mage','job_priest','job_thief','job_merchant','job_goof'
+ 'job_hero','job_warrior','job_fighter','job_mage','job_priest','job_thief','job_merchant','job_goof',
+ 'bg_field','bg_night','bg_sea','bg_dungeon','bg_under','ship','phoenix','tile_portal',
+ 'tile_forest','tile_mountain','tile_town','tile_castle','tile_tower','tile_cave','tile_pyramid','tile_harbor',
+ 'tile_shrine','tile_phoenix','tile_medal','tile_demon','obj_chest','obj_pot','obj_bed','obj_throne'
 ].forEach(loadImg);
 function imgOk(im) { return im && im.complete && im.naturalWidth > 0; }
 
@@ -971,22 +974,34 @@ const TILE_STYLE = {
   '^': ['#8d8577', '#8d8577'], 'd': ['#e0c184', '#e0c184'], '=': ['#b08954', '#b08954'],
 };
 const POI_EMOJI = { T: '🏘️', C: '🏰', t: '⚓', s: '⛩️', W: '🗼', D: '🕳️', P: '🔺', O: '⛩️', N: '🕊️', M: '🏯', X: '🏰', L: '🏘️', Z: '🏰', U: '🌀' };
+const POI_IMG = { T: 'tile_town', C: 'tile_castle', t: 'tile_harbor', s: 'tile_shrine', W: 'tile_tower', D: 'tile_cave', P: 'tile_pyramid', O: 'tile_shrine', N: 'tile_phoenix', M: 'tile_medal', X: 'tile_demon', L: 'tile_town', Z: 'tile_demon', U: 'tile_portal' };
+function drawTileImg(name, sx, sy, size) {
+  const im = IMG[name];
+  if (!imgOk(im)) return false;
+  const s = size || TILE * 1.12;
+  const w = s * im.naturalWidth / im.naturalHeight;
+  ctx.drawImage(im, sx + TILE / 2 - w / 2, sy + TILE - s + 2, w, s);
+  return true;
+}
 function drawTile(t, sx, sy, mapId) {
   const inWorld = MAPS[mapId].type === 'world';
   if (inWorld) {
     const st = TILE_STYLE[t];
     if (st) {
-      ctx.fillStyle = st[0]; ctx.fillRect(sx, sy, TILE, TILE);
-      ctx.fillStyle = 'rgba(0,0,0,0.08)';
-      if (t === 'f') { ctx.font = '30px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🌲', sx + TILE / 2, sy + 6); }
-      else if (t === '^') { ctx.font = '30px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('⛰️', sx + TILE / 2, sy + 6); }
+      ctx.fillStyle = (t === 'f' || t === '^') ? '#57a639' : st[0];
+      ctx.fillRect(sx, sy, TILE, TILE);
+      if (t === 'f') { if (!drawTileImg('tile_forest', sx, sy)) { ctx.font = '30px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🌲', sx + TILE / 2, sy + 6); } }
+      else if (t === '^') { if (!drawTileImg('tile_mountain', sx, sy)) { ctx.font = '30px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('⛰️', sx + TILE / 2, sy + 6); } }
       else if (t === '~') { ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(sx + 6, sy + 12, 12, 3); ctx.fillRect(sx + 22, sy + 28, 12, 3); }
       else if (t === 'd') { ctx.fillStyle = 'rgba(160,120,60,0.5)'; ctx.fillRect(sx + 8, sy + 30, 10, 3); }
-    } else if (POI_EMOJI[t]) {
-      ctx.fillStyle = '#57a639'; ctx.fillRect(sx, sy, TILE, TILE);
-      ctx.font = '30px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(POI_EMOJI[t], sx + TILE / 2, sy + 5);
-      if (t === 'X') { ctx.fillStyle = 'rgba(30,0,50,0.35)'; ctx.fillRect(sx, sy, TILE, TILE); ctx.fillText('🏰', sx + TILE / 2, sy + 5); }
+    } else if (POI_IMG[t] || POI_EMOJI[t]) {
+      ctx.fillStyle = t === 'P' ? '#e0c184' : (t === 'U' ? '#4a3550' : '#57a639');
+      ctx.fillRect(sx, sy, TILE, TILE);
+      if (!(POI_IMG[t] && drawTileImg(POI_IMG[t], sx, sy, TILE * 1.22))) {
+        ctx.font = '30px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(POI_EMOJI[t] || '🏠', sx + TILE / 2, sy + 5);
+      }
     } else { ctx.fillStyle = '#57a639'; ctx.fillRect(sx, sy, TILE, TILE); }
+    if (mapId === 'under') { ctx.fillStyle = 'rgba(46,16,64,0.25)'; ctx.fillRect(sx, sy, TILE, TILE); }
     return;
   }
   // 内装・ダンジョン
@@ -994,14 +1009,18 @@ function drawTile(t, sx, sy, mapId) {
   if (t === '#') { ctx.fillStyle = dark ? '#3a3f52' : '#7a5c3e'; ctx.fillRect(sx, sy, TILE, TILE); ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(sx, sy + TILE - 8, TILE, 8); }
   else if (t === 'X') { ctx.fillStyle = '#a33'; ctx.fillRect(sx, sy, TILE, TILE); ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('出口', sx + TILE / 2, sy + 15); }
   else if (t === 'C') { ctx.fillStyle = '#c9a86a'; ctx.fillRect(sx, sy, TILE, TILE); ctx.fillStyle = '#8a6d3b'; ctx.fillRect(sx, sy, TILE, 10); }
-  else if (t === 'B') { ctx.fillStyle = dark ? '#4a4f68' : '#ddd'; ctx.fillRect(sx, sy, TILE, TILE); ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(dark ? '🕯️' : '🪴', sx + TILE / 2, sy + 8); }
-  else if (t === 'K') { ctx.fillStyle = '#7a1030'; ctx.fillRect(sx, sy, TILE, TILE); ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('👑', sx + TILE / 2, sy + 8); }
+  else if (t === 'B') { ctx.fillStyle = dark ? '#4a4f68' : '#ddd'; ctx.fillRect(sx, sy, TILE, TILE); if (!drawTileImg(dark ? 'obj_throne' : 'tile_phoenix', sx, sy, TILE * 1.0)) { ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(dark ? '🕯️' : '🪴', sx + TILE / 2, sy + 8); } }
+  else if (t === 'K') { ctx.fillStyle = '#7a1030'; ctx.fillRect(sx, sy, TILE, TILE); if (!drawTileImg('obj_throne', sx, sy, TILE * 1.05)) { ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('👑', sx + TILE / 2, sy + 8); } }
   else if (t === 'T') {
     const opened = G.chestsOpened[G.map + ':' + curTileKey];
     ctx.fillStyle = dark ? '#565b78' : '#b5d99a'; ctx.fillRect(sx, sy, TILE, TILE);
-    ctx.font = '26px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(opened ? '📭' : '🎁', sx + TILE / 2, sy + 7);
+    ctx.save();
+    if (opened) ctx.filter = 'brightness(0.55) saturate(0.5)';
+    const okImg = drawTileImg('obj_chest', sx, sy, TILE * 0.98);
+    ctx.restore();
+    if (!okImg) { ctx.font = '26px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(opened ? '📭' : '🎁', sx + TILE / 2, sy + 7); }
   }
-  else if (t === 'P') { ctx.fillStyle = dark ? '#565b78' : '#b5d99a'; ctx.fillRect(sx, sy, TILE, TILE); ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🏺', sx + TILE / 2, sy + 8); }
+  else if (t === 'P') { ctx.fillStyle = dark ? '#565b78' : '#b5d99a'; ctx.fillRect(sx, sy, TILE, TILE); if (!drawTileImg('obj_pot', sx, sy, TILE * 0.92)) { ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🏺', sx + TILE / 2, sy + 8); } }
   else { ctx.fillStyle = dark ? '#565b78' : '#b5d99a'; ctx.fillRect(sx, sy, TILE, TILE); ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(sx, sy + TILE - 4, TILE, 4); }
 }
 let curTileKey = '';
@@ -1044,8 +1063,8 @@ function drawField() {
     const mem = G.party[i], pos = positions[i] || positions[0];
     if ((G.mode === 'ship' || G.mode === 'fly') && i > 0) continue;
     const dx = (pos.x - camX) * TILE, dy = (pos.y - camY) * TILE;
-    if (G.mode === 'ship' && i === 0) { ctx.font = '34px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('⛵', dx + TILE / 2, dy + 4); continue; }
-    if (G.mode === 'fly' && i === 0) { ctx.font = '34px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🦅', dx + TILE / 2, dy + 4); continue; }
+    if (G.mode === 'ship' && i === 0) { if (!drawTileImg('ship', dx, dy, TILE * 1.25)) { ctx.font = '34px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('⛵', dx + TILE / 2, dy + 4); } continue; }
+    if (G.mode === 'fly' && i === 0) { if (!drawTileImg('phoenix', dx, dy, TILE * 1.35)) { ctx.font = '34px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🦅', dx + TILE / 2, dy + 4); } continue; }
     if (mem.dead) { ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('⚰️', dx + TILE / 2, dy + 10 + bob); continue; }
     drawChar(JOBS[mem.job].img, dx, dy + (i === 0 ? bob : -bob), 0, false, mem.job === 'sage');
   }
@@ -2041,14 +2060,27 @@ function updateBattle(dt) {
 function drawBattle() {
   if (!B) return;
   const m = curMap();
-  const grad = ctx.createLinearGradient(0, 0, 0, 480);
-  if (m.type === 'dungeon') { grad.addColorStop(0, '#141428'); grad.addColorStop(1, '#3a2f4a'); }
-  else if (G.map === 'under') { grad.addColorStop(0, '#241a3e'); grad.addColorStop(1, '#4a2f52'); }
-  else if (isNight()) { grad.addColorStop(0, '#101a3e'); grad.addColorStop(1, '#3e5a8a'); }
-  else { grad.addColorStop(0, '#79a6ff'); grad.addColorStop(1, '#cfe8ff'); }
-  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, 480);
-  ctx.fillStyle = m.type === 'dungeon' ? '#2c2438' : (G.mode === 'ship' ? '#2b5ea7' : '#4d8a3d');
-  ctx.fillRect(0, 300, W, 180);
+  let bgName = 'bg_field';
+  if (m.type === 'dungeon') bgName = 'bg_dungeon';
+  else if (G.map === 'under') bgName = 'bg_under';
+  else if (G.mode === 'ship') bgName = 'bg_sea';
+  else if (isNight()) bgName = 'bg_night';
+  const bgIm = IMG[bgName];
+  if (imgOk(bgIm)) {
+    const scale = Math.max(W / bgIm.naturalWidth, 480 / bgIm.naturalHeight);
+    const bw = bgIm.naturalWidth * scale, bh = bgIm.naturalHeight * scale;
+    ctx.drawImage(bgIm, (W - bw) / 2, 480 - bh, bw, bh);
+    ctx.fillStyle = 'rgba(0,0,0,0.16)'; ctx.fillRect(0, 296, W, 184);
+  } else {
+    const grad = ctx.createLinearGradient(0, 0, 0, 480);
+    if (m.type === 'dungeon') { grad.addColorStop(0, '#141428'); grad.addColorStop(1, '#3a2f4a'); }
+    else if (G.map === 'under') { grad.addColorStop(0, '#241a3e'); grad.addColorStop(1, '#4a2f52'); }
+    else if (isNight()) { grad.addColorStop(0, '#101a3e'); grad.addColorStop(1, '#3e5a8a'); }
+    else { grad.addColorStop(0, '#79a6ff'); grad.addColorStop(1, '#cfe8ff'); }
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, W, 480);
+    ctx.fillStyle = m.type === 'dungeon' ? '#2c2438' : (G.mode === 'ship' ? '#2b5ea7' : '#4d8a3d');
+    ctx.fillRect(0, 300, W, 180);
+  }
   // 敵
   const foes = B.enemies.map((e, i) => ({ e, i })).filter(x => !x.e.dead && !x.e.fled);
   const slotW = Math.min(170, (W - 30) / Math.max(1, foes.length));
