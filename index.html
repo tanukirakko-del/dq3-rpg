@@ -646,7 +646,7 @@ const MAPS = {
     pots: { '3,6': { medal: true }, '11,6': { gold: 350 } } },
   orochi: { name: 'オロチの祠', type: 'dungeon', bgm: 'dark', enc: 'orochi', rows: [
     '#########',
-    '#.......#',
+    '#T......#',
     '#...B...#',
     '#.......#',
     '#...P...#',
@@ -654,7 +654,7 @@ const MAPS = {
     '####XX###',
   ], npcs: [
     { x: 4, y: 2, img: 'boss_orochi', role: 'orochi', name: 'やまたのおろち', big: true },
-  ], chests: {}, pots: { '4,4': { medal: true } } },
+  ], chests: { '1,1': { key: 'orb_purple' } }, pots: { '4,4': { medal: true } } },
   dcastle: { name: 'バラモス城', type: 'dungeon', bgm: 'dark', enc: 'dcastle', rows: [
     '###############',
     '#......K......#',
