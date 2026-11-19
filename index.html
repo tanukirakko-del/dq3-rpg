@@ -472,6 +472,7 @@ function buildWorldRows() {
   // 魔王城：山に囲まれた島（空からしか行けない）
   for (let y = 2; y <= 4; y++) for (let x = 17; x <= 19; x++) set(x, y, '^');
   set(18, 3, 'X');
+  set(18, 5, 'U');  // 地下との往復ポータル（魔王城の南の海上）
   // POI
   set(5, 15, 'T'); set(10, 10, 'C'); set(6, 6, 'W'); set(8, 21, 't');
   set(31, 10, 's'); set(25, 5, 'P'); set(29, 7, 'D');
@@ -905,6 +906,12 @@ function onStepTile() {
       G.mode = 'walk';
       enterMap('world', 18, 5);
       showMsg('不思議な光に 包まれ、地上へ 戻った！');
+      return;
+    }
+    if (t === 'U' && G.map === 'world' && G.flags.baramosDown && G.mode !== 'fly') {
+      G.mode = 'walk';
+      enterMap('under', 12, 14);
+      showMsg('不思議な光に 包まれ、地下の世界へ 落ちていった…！');
       return;
     }
     if (G.mode === 'ship' && t !== '~' && t !== '=') {
