@@ -1045,6 +1045,21 @@ function drawField() {
     curTileKey = tx + ',' + ty;
     drawTile(m.rows[ty][tx], dx, dy, G.map);
   }
+  // 隠しメダル：3マス以内に近づくとキラキラ光る（未発見のものだけ）
+  if (m.type === 'world') {
+    const pulse = 0.55 + 0.45 * Math.sin(performance.now() / 220);
+    WORLD_MEDALS.forEach(s => {
+      if (s.map !== G.map) return;
+      if (G.medalFound['w' + s.x + ',' + s.y + s.map]) return;
+      if (Math.max(Math.abs(s.x - G.x), Math.abs(s.y - G.y)) > 3) return;
+      const dx = (s.x - camX) * TILE, dy = (s.y - camY) * TILE;
+      ctx.save();
+      ctx.globalAlpha = pulse;
+      ctx.font = '20px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('✨', dx + TILE / 2, dy + 8);
+      ctx.restore();
+    });
+  }
   // NPC
   (m.npcs || []).forEach(n => {
     if (n.gone) return;
